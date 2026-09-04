@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destinos para Coleccionar ♡</title>
+    <style>
+        /* ==========================================
+           CSS: ESTILOS GENERALES Y VARIABLES
+           ========================================== */
+        :root {
+            --primary-color: #46B2BD;
+            --secondary-color: #ffe6eb;
+            --text-color: #333333;
+            --bg-color: #fff9fa;
+            --white: #ffffff;
+            --gray: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ==========================================
+           CSS: ENCABEZADO
+           ========================================== */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            margin: 0;
+        }
+
+        /* ==========================================
+           CSS: CONTENEDOR DE BOTONES PRINCIPALES
+           ========================================== */
+        .main-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #316EA0;
+        }
+
+        /* ==========================================
+           CSS: CALENDARIO
+           ========================================== */
+        .calendar-container {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 30px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-header button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--primary-color);
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            text-transform: capitalize;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: bold;
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            background: #fafafa;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+            border: 1px solid #eee;
+        }
+
+        .day-cell:hover {
+            background: var(--secondary-color);
+        }
+
+        .day-cell.has-event {
+            border-color: var(--primary-color);
+            background: var(--secondary-color);
+        }
+
+        .day-cell .heart-indicator {
+            color: var(--primary-color);
+            font-size: 0.7rem;
+            margin-top: 2px;
+        }
+
+        /* ==========================================
+           CSS: VENTANAS MODALES (POP-UPS)
+           ========================================== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Estilo para la "tachita" de cierre */
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #888;
+        }
+        .modal-close:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            padding-right: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 8px;
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* ==========================================
+           CSS: DISEÑO BONITO PARA SUBIR ARCHIVOS
+           ========================================== */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .file-upload-input {
+            display: none;
+        }
+
+        .file-upload-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: 2px dashed var(--primary-color);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .file-upload-btn:hover {
+            background-color: #ffd6df;
+        }
+
+        .file-names-display {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .chips-container {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .chip {
+            background: var(--secondary-color);
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: 1px solid var(--primary-color);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* ==========================================
+           CSS: SECCIÓN DE LUGARES GUARDADOS
+           ========================================== */
+        .places-section {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .places-section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 5px;
+        }
+
+        .place-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        .place-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 30px; /* Espacio para el botón eliminar */
+        }
+
+        .place-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        /* Botón de eliminar lugar en la esquina de la tarjeta */
+        .btn-delete-place {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .btn-delete-place:hover {
+            color: #d9534f;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .status-pendiente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-cumplida {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .place-details {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .menu-preview {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-top: 5px;
+        }
+
+        .menu-preview img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid var(--gray);
+        }
+
+        /* Visor de imágenes flotante */
+        #image-viewer-modal img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>♥ Dᴇsᴛɪɴᴏs ᴘᴀʀᴀ Cᴏʟᴇᴄᴄɪᴏɴᴀʀ ♡</h1>
+    </header>
+
+    <div class="main-buttons">
+        <button class="btn" onclick="openModal('meeting-modal')">Crear Reunión</button>
+        <button class="btn" onclick="openModal('place-modal')">Agregar Lugar</button>
+    </div>
+
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <button onclick="changeMonth(-1)">❮</button>
+            <h2 id="month-year-display">Mes Año</h2>
+            <button onclick="changeMonth(1)">❯</button>
+        </div>
+        <div class="weekdays">
+            <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>
+        </div>
+        <div class="days-grid" id="days-grid">
+            </div>
+    </div>
+
+    <div class="places-section">
+        <h2>Lugares Coleccionados</h2>
+        <div id="places-list">
+            </div>
+    </div>
+
+    <div class="modal" id="meeting-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('meeting-modal')">×</button>
+            <h3>✎ A DONDE VAMOS?.✧</h3>
+            <form id="meeting-form" onsubmit="saveMeeting(event)">
+                <div class="form-group">
+                    <label>Título:</label>
+                    <input type="text" id="m-title">
+                </div>
+                
+                <div class="form-group">
+                    <label>Fecha y Hora:</label>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <input type="date" id="m-date" required style="flex: 2; padding: 7px;">
+                        <input type="text" id="m-time-hh" maxlength="2" required style="width: 35px; text-align: center;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <span style="font-weight: bold;">:</span>
+                        <input type="text" id="m-time-mm" maxlength="2" required style="width: 35px; text-align: center;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <select id="m-ampm" style="flex: 1; padding: 7px;">
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Ubicación:</label>
+                    <select id="m-location" required>
+                        <option value="">Selecciona un lugar...</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn">Rᴇsᴇʀᴠᴀʀ Dɪ́ᴀ ♡</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="place-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('place-modal')">×</button>
+            <h3>CREAR LUGAR ⊹˚.⋆</h3>
+            <form id="place-form" onsubmit="savePlace(event)">
+                <div class="form-group">
+                    <label>Nombre del lugar:</label>
+                    <input type="text" id="p-name">
+                </div>
+                <div class="form-group">
+                    <label>Categoría:</label>
+                    <select id="p-category-select" onchange="selectCategory(this.value)">
+                        <option value="">Selecciona categoría...</option>
+                        <option value="Café">Café</option>
+                        <option value="Galería de arte">Galería de arte</option>
+                        <option value="Restaurante">Restaurante</option>
+                        <option value="Mirador">Mirador</option>
+                        <option value="Parque">Parque</option>
+                    </select>
+                    <div class="chips-container" id="p-selected-chips"></div>
+                    <input type="hidden" id="p-category" required>
+                </div>
+                <div class="form-group">
+                    <label>Rango de precios:</label>
+                    <input type="text" id="p-price">
+                </div>
+                <div class="form-group">
+                    <label>Link de Google Maps:</label>
+                    <input type="url" id="p-link" placeholder="https://maps.google.com/..." required>
+                </div>
+                <div class="form-group">
+                    <label>Referencia / Nota:</label>
+                    <textarea id="p-reference" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Fotos del Menú:</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="p-menu-files" class="file-upload-input" multiple accept="image/*" onchange="updateFileName(this)">
+                        <label for="p-menu-files" class="file-upload-btn">
+                            Seleccionar Fotos...
+                        </label>
+                        <div id="file-names-display" class="file-names-display">Ningún archivo seleccionado</div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn">Gᴜᴀʀᴅᴀʀ Lᴜɢᴀʀ ♡</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="event-detail-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('event-detail-modal')">×</button>
+            <h3 id="det-title">Detalles de la Cita</h3>
+            <div id="det-content" class="place-details" style="margin-bottom: 20px;"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn" style="background-color: #d9534f;" onclick="deleteMeeting()">Eliminar Cita</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="image-viewer-modal" onclick="closeModal('image-viewer-modal')">
+        <div style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; position:relative;">
+            <button class="modal-close" style="top:20px; right:30px; color:#fff;" onclick="closeModal('image-viewer-modal')">×</button>
+            <img id="full-img" src="" alt="Vista ampliada">
+        </div>
+    </div>
+
+    <script>
+        let places = JSON.parse(localStorage.getItem('dc_places')) || [];
+        let meetings = JSON.parse(localStorage.getItem('dc_meetings')) || [];
+        
+        let currentDate = new Date();
+        let selectedEventId = null;
+
+        window.onload = function() {
+            renderCalendar();
+            renderPlaces();
+            updateLocationSelect();
+        };
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+            if(modalId === 'meeting-modal') updateLocationSelect();
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function updateFileName(input) {
+            const display = document.getElementById('file-names-display');
+            if (input.files.length > 0) {
+                if (input.files.length === 1) {
+                    display.textContent = `1 archivo seleccionado: ${input.files[0].name}`;
+                } else {
+                    display.textContent = `${input.files.length} archivos seleccionados`;
+                }
+            } else {
+                display.textContent = 'Ningún archivo seleccionado';
+            }
+        }
+
+        function selectCategory(value) {
+            if(!value) return;
+            document.getElementById('p-category').value = value;
+            const container = document.getElementById('p-selected-chips');
+            container.innerHTML = `<span class="chip">${value} ✕</span>`;
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const monthsNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            document.getElementById('month-year-display').textContent = `${monthsNames[month]} ${year}`;
+
+            const daysGrid = document.getElementById('days-grid');
+            daysGrid.innerHTML = '';
+
+            let firstDayIndex = new Date(year, month, 1).getDay();
+            firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            for(let i = 0; i < firstDayIndex; i++) {
+                let emptyCell = document.createElement('div');
+                daysGrid.appendChild(emptyCell);
+            }
+
+            for(let day = 1; day <= totalDays; day++) {
+                let cell = document.createElement('div');
+                cell.className = 'day-cell';
+                
+                let formattedMonth = String(month + 1).padStart(2, '0');
+                let formattedDay = String(day).padStart(2, '0');
+                let dateString = `${year}-${formattedMonth}-${formattedDay}`;
+
+                cell.innerHTML = `<span>${day}</span>`;
+
+                let meeting = meetings.find(m => m.date === dateString);
+                if(meeting) {
+                    cell.classList.add('has-event');
+                    cell.innerHTML += `<span class="heart-indicator">♥</span>`;
+                    cell.onclick = () => openEventDetails(meeting.id);
+                }
+
+                daysGrid.appendChild(cell);
+            }
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        function savePlace(e) {
+            e.preventDefault();
+            const name = document.getElementById('p-name').value;
+            const category = document.getElementById('p-category').value;
+            const price = document.getElementById('p-price').value;
+            const link = document.getElementById('p-link').value;
+            const reference = document.getElementById('p-reference').value;
+            const fileInput = document.getElementById('p-menu-files');
+
+            let autoPhoto = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80";
+            if(category === "Café") autoPhoto = "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=300&q=80";
+            if(category === "Galería de arte") autoPhoto = "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=300&q=80";
+
+            let menuImages = [];
+            if(fileInput.files.length > 0) {
+                let filesProcessed = 0;
+                Array.from(fileInput.files).forEach((file) => {
+                    const reader = new FileReader();
+                    reader.onload = function(uploadEvent) {
+                        menuImages.push(uploadEvent.target.result);
+                        filesProcessed++;
+                        if(filesProcessed === fileInput.files.length) {
+                            finishSavingPlace(name, category, price, link, autoPhoto, reference, menuImages);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                finishSavingPlace(name, category, price, link, autoPhoto, reference, []);
+            }
+        }
+
+        function finishSavingPlace(name, category, price, link, photo, reference, menuImages) {
+            const newPlace = {
+                id: Date.now(),
+                name, category, price, link, photo, reference, menuImages
+            };
+
+            places.push(newPlace);
+            localStorage.setItem('dc_places', JSON.stringify(places));
+
+            document.getElementById('place-form').reset();
+            document.getElementById('p-selected-chips').innerHTML = '';
+            document.getElementById('file-names-display').textContent = 'Ningún archivo seleccionado';
+            closeModal('place-modal');
+            renderPlaces();
+            updateLocationSelect();
+        }
+
+        // Función para eliminar un lugar coleccionado
+        function deletePlace(placeId) {
+            if(confirm("¿Estás seguro de que deseas eliminar este lugar? Se desvincularán sus reuniones asociadas.")) {
+                places = places.filter(p => p.id !== placeId);
+                localStorage.setItem('dc_places', JSON.stringify(places));
+                
+                // También opcionalmente limpiar citas asociadas a este lugar
+                meetings = meetings.filter(m => m.locationId != placeId);
+                localStorage.setItem('dc_meetings', JSON.stringify(meetings));
+
+                renderPlaces();
+                renderCalendar();
+                updateLocationSelect();
+            }
+        }
+
+        function renderPlaces() {
+            const listContainer = document.getElementById('places-list');
+            listContainer.innerHTML = '';
+
+            if(places.length === 0) {
+                listContainer.innerHTML = '<p style="color:#777; text-align:center;">Aún no hay lugares coleccionados.</p>';
+                return;
+            }
+
+            places.forEach(place => {
+                let placeMeetings = meetings.filter(m => m.locationId == place.id);
+                let status = "Pendiente";
+                let statusClass = "status-pendiente";
+
+                if(placeMeetings.length > 0) {
+                    let now = new Date();
+                    let passed = placeMeetings.some(m => new Date(`${m.date}T${convertTo24(m.time, m.ampm)}`) < now);
+                    if(passed) {
+                        status = "Misión cumplida";
+                        statusClass = "status-cumplida";
+                    }
+                }
+
+                let card = document.createElement('div');
+                card.className = 'place-card';
+                card.innerHTML = `
+                    <button class="btn-delete-place" onclick="deletePlace(${place.id})" title="Eliminar lugar">✕</button>
+                    <div class="place-header">
+                        <span class="place-title">${place.name}</span>
+                        <span class="status-badge ${statusClass}">${status}</span>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <img src="${place.photo}" alt="${place.name}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
+                        <div class="place-details" style="flex:1;">
+                            <p><b>Categoría:</b> ${place.category} | <b>Precio:</b> ${place.price}</p>
+                            <p><b>Ref:</b> ${place.reference || 'Sin referencias'}</p>
+                            <p><a href="${place.link}" target="_blank" style="color:var(--primary-color);">Ver en Google Maps 📍</a></p>
+                        </div>
+                    </div>
+                    ${place.menuImages.length > 0 ? `
+                        <div>
+                            <p style="font-size:0.8rem; font-weight:bold; margin: 5px 0;">Menú:</p>
+                            <div class="menu-preview">
+                                ${place.menuImages.map(img => `<img src="${img}" onclick="openImageViewer('${img}')">`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function updateLocationSelect() {
+            const select = document.getElementById('m-location');
+            select.innerHTML = '<option value="">Selecciona un lugar...</option>';
+            places.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.name} (${p.category})</option>`;
+            });
+        }
+
+        function saveMeeting(e) {
+            e.preventDefault();
+            const title = document.getElementById('m-title').value;
+            const date = document.getElementById('m-date').value;
+            const hh = document.getElementById('m-time-hh').value.padStart(2, '0');
+            const mm = document.getElementById('m-time-mm').value.padStart(2, '0');
+            const time = `${hh}:${mm}`;
+            const ampm = document.getElementById('m-ampm').value;
+            const locationId = document.getElementById('m-location').value;
+
+            const newMeeting = {
+                id: Date.now(),
+                title, date, time, ampm, locationId
+            };
+
+            meetings.push(newMeeting);
+            localStorage.setItem('dc_meetings', JSON.stringify(meetings));
+
+            document.getElementById('meeting-form').reset();
+            document.getElementById('m-time-mm').value = "00";
+            closeModal('meeting-modal');
+            renderCalendar();
+            renderPlaces();
+        }
+
+        function openEventDetails(id) {
+            selectedEventId = id;
+            const meeting = meetings.find(m => m.id === id);
+            const place = places.find(p => p.id == meeting.locationId);
+
+            document.getElementById('det-title').textContent = meeting.title;
+            document.getElementById('det-content').innerHTML = `
+                <p><b>📅 Fecha:</b> ${meeting.date}</p>
+                <p><b>⏰ Hora:</b> ${meeting.time} ${meeting.ampm}</p>
+                <p><b>📍 Lugar:</b> ${place ? place.name : 'Ubicación externa'}</p>
+                ${place ? `<p><b>Ref del lugar:</b> ${place.reference}</p>` : ''}
+            `;
+            openModal('event-detail-modal');
+        }
+
+        function deleteMeeting() {
+            if(!selectedEventId) return;
+            meetings = meetings.filter(m => m.id !== selectedEventId);
+            localStorage.setItem('dc_meetings', JSON.stringify(meetings));
+            closeModal('event-detail-modal');
+            renderCalendar();
+            renderPlaces();
+            selectedEventId = null;
+        }
+
+        function convertTo24(timeStr, ampm) {
+            let [hours, minutes] = timeStr.split(':');
+            hours = parseInt(hours);
+            if(ampm === 'PM' && hours < 12) hours += 12;
+            if(ampm === 'AM' && hours === 12) hours = 0;
+            return `${String(hours).padStart(2, '0')}:${minutes}`;
+        }
+
+        function openImageViewer(url) {
+            document.getElementById('full-img').src = url;
+            openModal('image-viewer-modal');
+        }
+    </script>
+</body>
+</html>
