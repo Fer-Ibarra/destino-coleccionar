@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Destinos para Coleccionar ♡</title>
     <style>
-        /* ==========================================
-           CSS: ESTILOS GENERALES Y VARIABLES
-           ========================================== */
         :root {
             --primary-color: #46B2BD;
             --secondary-color: #ffe6eb;
@@ -28,9 +25,6 @@
             align-items: center;
         }
 
-        /* ==========================================
-           CSS: ENCABEZADO
-           ========================================== */
         header {
             text-align: center;
             margin-bottom: 20px;
@@ -42,9 +36,6 @@
             margin: 0;
         }
 
-        /* ==========================================
-           CSS: CONTENEDOR DE BOTONES PRINCIPALES
-           ========================================== */
         .main-buttons {
             display: flex;
             gap: 15px;
@@ -68,9 +59,6 @@
             background-color: #316EA0;
         }
 
-        /* ==========================================
-           CSS: CALENDARIO
-           ========================================== */
         .calendar-container {
             background: var(--white);
             padding: 20px;
@@ -148,9 +136,6 @@
             margin-top: 2px;
         }
 
-        /* ==========================================
-           CSS: VENTANAS MODALES (POP-UPS)
-           ========================================== */
         .modal {
             display: none;
             position: fixed;
@@ -176,7 +161,6 @@
             position: relative;
         }
 
-        /* Estilo para la "tachita" de cierre */
         .modal-close {
             position: absolute;
             top: 15px;
@@ -216,9 +200,6 @@
             font-size: 0.9rem;
         }
 
-        /* ==========================================
-           CSS: DISEÑO BONITO PARA SUBIR ARCHIVOS
-           ========================================== */
         .file-upload-wrapper {
             position: relative;
             width: 100%;
@@ -281,9 +262,6 @@
             margin-top: 20px;
         }
 
-        /* ==========================================
-           CSS: SECCIÓN DE LUGARES GUARDADOS
-           ========================================== */
         .places-section {
             width: 100%;
             max-width: 600px;
@@ -311,7 +289,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-right: 30px; /* Espacio para el botón eliminar */
+            padding-right: 30px;
         }
 
         .place-title {
@@ -320,7 +298,6 @@
             color: var(--primary-color);
         }
 
-        /* Botón de eliminar lugar en la esquina de la tarjeta */
         .btn-delete-place {
             position: absolute;
             top: 15px;
@@ -375,7 +352,6 @@
             border: 1px solid var(--gray);
         }
 
-        /* Visor de imágenes flotante */
         #image-viewer-modal img {
             max-width: 100%;
             max-height: 80vh;
@@ -403,14 +379,12 @@
         <div class="weekdays">
             <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>
         </div>
-        <div class="days-grid" id="days-grid">
-            </div>
+        <div class="days-grid" id="days-grid"></div>
     </div>
 
     <div class="places-section">
         <h2>Lugares Coleccionados</h2>
-        <div id="places-list">
-            </div>
+        <div id="places-list"></div>
     </div>
 
     <div class="modal" id="meeting-modal">
@@ -420,7 +394,7 @@
             <form id="meeting-form" onsubmit="saveMeeting(event)">
                 <div class="form-group">
                     <label>Título:</label>
-                    <input type="text" id="m-title">
+                    <input type="text" id="m-title" required>
                 </div>
                 
                 <div class="form-group">
@@ -457,7 +431,7 @@
             <form id="place-form" onsubmit="savePlace(event)">
                 <div class="form-group">
                     <label>Nombre del lugar:</label>
-                    <input type="text" id="p-name">
+                    <input type="text" id="p-name" required>
                 </div>
                 <div class="form-group">
                     <label>Categoría:</label>
@@ -519,17 +493,42 @@
         </div>
     </div>
 
+    <!-- Firebase SDKs versión compatible con script tags -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <script>
-        let places = JSON.parse(localStorage.getItem('dc_places')) || [];
-        let meetings = JSON.parse(localStorage.getItem('dc_meetings')) || [];
-        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDpUB8CZjs0IINtGtJGUCucg7SIFZAF54",
+            authDomain: "datos-lugares.firebaseapp.com",
+            projectId: "datos-lugares",
+            storageBucket: "datos-lugares.firebasestorage.app",
+            messagingSenderId: "152177697237",
+            appId: "1:152177697237:web:8a8349ba583e724d709d5c",
+            measurementId: "G-DYK2CYE3R6"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let places = [];
+        let meetings = [];
         let currentDate = new Date();
         let selectedEventId = null;
 
         window.onload = function() {
-            renderCalendar();
-            renderPlaces();
-            updateLocationSelect();
+            db.collection("places").onSnapshot((snapshot) => {
+                places = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+                renderPlaces();
+                updateLocationSelect();
+                renderCalendar();
+            });
+
+            db.collection("meetings").onSnapshot((snapshot) => {
+                meetings = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+                renderCalendar();
+                renderPlaces();
+            });
         };
 
         function openModal(modalId) {
@@ -593,7 +592,7 @@
                 if(meeting) {
                     cell.classList.add('has-event');
                     cell.innerHTML += `<span class="heart-indicator">♥</span>`;
-                    cell.onclick = () => openEventDetails(meeting.id);
+                    cell.onclick = () => openEventDetails(meeting.firebaseId);
                 }
 
                 daysGrid.appendChild(cell);
@@ -643,30 +642,22 @@
                 name, category, price, link, photo, reference, menuImages
             };
 
-            places.push(newPlace);
-            localStorage.setItem('dc_places', JSON.stringify(places));
-
-            document.getElementById('place-form').reset();
-            document.getElementById('p-selected-chips').innerHTML = '';
-            document.getElementById('file-names-display').textContent = 'Ningún archivo seleccionado';
-            closeModal('place-modal');
-            renderPlaces();
-            updateLocationSelect();
+            db.collection("places").add(newPlace).then(() => {
+                document.getElementById('place-form').reset();
+                document.getElementById('p-selected-chips').innerHTML = '';
+                document.getElementById('file-names-display').textContent = 'Ningún archivo seleccionado';
+                closeModal('place-modal');
+            });
         }
 
-        // Función para eliminar un lugar coleccionado
-        function deletePlace(placeId) {
+        function deletePlace(firebaseId, placeId) {
             if(confirm("¿Estás seguro de que deseas eliminar este lugar? Se desvincularán sus reuniones asociadas.")) {
-                places = places.filter(p => p.id !== placeId);
-                localStorage.setItem('dc_places', JSON.stringify(places));
-                
-                // También opcionalmente limpiar citas asociadas a este lugar
-                meetings = meetings.filter(m => m.locationId != placeId);
-                localStorage.setItem('dc_meetings', JSON.stringify(meetings));
-
-                renderPlaces();
-                renderCalendar();
-                updateLocationSelect();
+                db.collection("places").doc(firebaseId).delete().then(() => {
+                    let associatedMeetings = meetings.filter(m => m.locationId == placeId);
+                    associatedMeetings.forEach(m => {
+                        db.collection("meetings").doc(m.firebaseId).delete();
+                    });
+                });
             }
         }
 
@@ -696,7 +687,7 @@
                 let card = document.createElement('div');
                 card.className = 'place-card';
                 card.innerHTML = `
-                    <button class="btn-delete-place" onclick="deletePlace(${place.id})" title="Eliminar lugar">✕</button>
+                    <button class="btn-delete-place" onclick="deletePlace('${place.firebaseId}', ${place.id})" title="Eliminar lugar">✕</button>
                     <div class="place-header">
                         <span class="place-title">${place.name}</span>
                         <span class="status-badge ${statusClass}">${status}</span>
@@ -709,7 +700,7 @@
                             <p><a href="${place.link}" target="_blank" style="color:var(--primary-color);">Ver en Google Maps 📍</a></p>
                         </div>
                     </div>
-                    ${place.menuImages.length > 0 ? `
+                    ${place.menuImages && place.menuImages.length > 0 ? `
                         <div>
                             <p style="font-size:0.8rem; font-weight:bold; margin: 5px 0;">Menú:</p>
                             <div class="menu-preview">
@@ -724,6 +715,7 @@
 
         function updateLocationSelect() {
             const select = document.getElementById('m-location');
+            if(!select) return;
             select.innerHTML = '<option value="">Selecciona un lugar...</option>';
             places.forEach(p => {
                 select.innerHTML += `<option value="${p.id}">${p.name} (${p.category})</option>`;
@@ -745,19 +737,16 @@
                 title, date, time, ampm, locationId
             };
 
-            meetings.push(newMeeting);
-            localStorage.setItem('dc_meetings', JSON.stringify(meetings));
-
-            document.getElementById('meeting-form').reset();
-            document.getElementById('m-time-mm').value = "00";
-            closeModal('meeting-modal');
-            renderCalendar();
-            renderPlaces();
+            db.collection("meetings").add(newMeeting).then(() => {
+                document.getElementById('meeting-form').reset();
+                document.getElementById('m-time-mm').value = "00";
+                closeModal('meeting-modal');
+            });
         }
 
-        function openEventDetails(id) {
-            selectedEventId = id;
-            const meeting = meetings.find(m => m.id === id);
+        function openEventDetails(firebaseId) {
+            selectedEventId = firebaseId;
+            const meeting = meetings.find(m => m.firebaseId === firebaseId);
             const place = places.find(p => p.id == meeting.locationId);
 
             document.getElementById('det-title').textContent = meeting.title;
@@ -772,12 +761,10 @@
 
         function deleteMeeting() {
             if(!selectedEventId) return;
-            meetings = meetings.filter(m => m.id !== selectedEventId);
-            localStorage.setItem('dc_meetings', JSON.stringify(meetings));
-            closeModal('event-detail-modal');
-            renderCalendar();
-            renderPlaces();
-            selectedEventId = null;
+            db.collection("meetings").doc(selectedEventId).delete().then(() => {
+                closeModal('event-detail-modal');
+                selectedEventId = null;
+            });
         }
 
         function convertTo24(timeStr, ampm) {
