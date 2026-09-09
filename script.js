@@ -215,14 +215,14 @@ function savePlace(e) {
                     menuImages.push(image);
                     filesProcessed++;
                     if(filesProcessed === fileInput.files.length) {
-                        finishSavingPlace(name, category, price, link, autoPhoto, reference, menuImages);
+                        finishSavingPlace(name, category, price, link, autoPhoto, reference, menuImages, priceMin, priceMax);
                     }
                 });
             };
             reader.readAsDataURL(file);
         });
     } else {
-        finishSavingPlace(name, category, price, link, autoPhoto, reference, []);
+        finishSavingPlace(name, category, price, link, autoPhoto, reference, [], priceMin, priceMax);
     }
 }
 
@@ -242,11 +242,12 @@ function resizeImage(dataUrl) {
     });
 }
 
-async function finishSavingPlace(name, category, price, link, photo, reference, menuImages) {
+async function finishSavingPlace(name, category, price, link, photo, reference, menuImages, priceMin, priceMax) {
     const newPlace = {
         id: Date.now(),
         name, category, price, link, photo, reference, menuImages,
-        priceMin, priceMax
+        priceMin: priceMin || "",
+        priceMax: priceMax || ""
     };
 
     db.collection("places").add(newPlace).then(() => {
