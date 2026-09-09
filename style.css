@@ -506,7 +506,7 @@ header h1 {
     border-radius: 8px;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 700px) {
     body { padding: 14px; }
     header h1 { font-size: 1.65rem; }
     .workspace { display: block; height: auto; min-height: 0; }
