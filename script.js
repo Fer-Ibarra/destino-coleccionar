@@ -421,3 +421,4 @@ function openImageViewer(url) {
     document.getElementById('full-img').src = url;
     openModal('image-viewer-modal');
 }
+
