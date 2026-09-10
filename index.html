@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⋆｡ﾟ☁︎｡⋆｡ ﾟ☾ ﾟ｡⋆ </title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <h1>₊˚⊹♡ Destinos Coleccionables ⋆.˚✧</h1>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <button onclick="changeMonth(-1)">❮</button>
+                <h2 id="month-year-display">Mes Año</h2>
+                <button onclick="changeMonth(1)">❯</button>
+            </div>
+            <div class="weekdays">
+                <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>
+            </div>
+            <div class="days-grid" id="days-grid"></div>
+        </div>
+
+        <div class="places-section">
+            <div class="places-heading">
+                <h2>₊˚Lugares Coleccionados˚⊹</h2>
+                <div class="main-buttons">
+                    <button class="btn" onclick="openModal('meeting-modal')">𑣲Crear Reunión ✦݁˖</button>
+                    <button class="btn" onclick="openModal('place-modal')">✎ Añadir Destino ᝰ</button>
+                </div>
+            </div>
+            <div id="places-list"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="meeting-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('meeting-modal')">×</button>
+            <h3>𐙚 A donde vamos? ₊⊹</h3>
+            <form id="meeting-form" onsubmit="saveMeeting(event)">
+                <div class="meeting-datetime">
+                    <div class="form-group">
+                        <label for="m-date">Fecha</label>
+                        <input type="date" id="m-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="m-time-hh">Hora</label>
+                        <div class="time-input">
+                            <input type="text" id="m-time-hh" maxlength="2" placeholder="hh" required inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            <span>:</span>
+                            <input type="text" id="m-time-mm" maxlength="2" placeholder="mm" required inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            <select id="m-ampm" aria-label="AM o PM">
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="meeting-locations" class="meeting-locations">
+                    <div class="location-row">
+                        <label for="m-location-1">Lugar 1</label>
+                        <select id="m-location-1" class="meeting-location" required onchange="toggleCustomDestinationFields(1, this.value)">
+                            <option value="">Selecciona un lugar...</option>
+                        </select>
+                        <div id="custom-destination-fields-1" class="custom-destination-fields" style="display: none;">
+                            <input type="text" class="custom-name" id="m-custom-name" placeholder="Nombre del lugar">
+                            <input type="url" class="custom-link" id="m-custom-link" placeholder="https://maps.google.com/...">
+                            <textarea class="custom-reference" id="m-custom-reference" rows="2" placeholder="Referencia"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="add-location-btn" onclick="addMeetingLocation()">✚ Agregar Lugar</button>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn">˚.⋆ Guardar Dia ♡</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="place-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('place-modal')">×</button>
+            <form id="place-form" onsubmit="savePlace(event)">
+                <div class="form-group">
+                    <label>Nombre del lugar:</label>
+                    <input type="text" id="p-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="p-place-file">Foto del lugar:</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="p-place-file" class="file-upload-input" accept="image/*" required onchange="updatePlaceFileName(this)">
+                        <label for="p-place-file" class="file-upload-btn">
+                            Seleccionar Foto...
+                        </label>
+                        <div id="place-file-name-display" class="file-names-display">Ningún archivo seleccionado</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Categoría:</label>
+                    <select id="p-category-select" onchange="selectCategory(this.value)">
+                        <option value="">Selecciona categoría...</option>
+                        <option value="Café">Café ☕</option>
+                        <option value="Galería de arte 🎨">Galería de arte</option>
+                        <option value="Restaurante">Restaurante🍝</option>
+                        <option value="Mirador">Mirador🖼️</option>
+                        <option value="Parque">Parque🌳</option>
+                        <option value="Museo">Museo🏛️</option>
+                        <option value="Talleres">Talleres🧩</option>
+                    </select>
+                    <div class="chips-container" id="p-selected-chips"></div>
+                    <input type="hidden" id="p-category" required>
+                </div>
+                <div class="form-group">
+                    <div class="price-heading">
+                        <label for="p-free-entry">Rango de precios:</label>
+                        <label class="free-entry-option"><input type="checkbox" id="p-free-entry" onchange="togglePriceInputs(this.checked)"> Entrada gratuita</label>
+                    </div>
+                    <div class="price-range-inputs">
+                        <label class="price-input"><span>$ Min</span><input type="number" id="p-price-min" min="0"></label>
+                        <span class="price-separator">-</span>
+                        <label class="price-input"><span>$ Max</span><input type="number" id="p-price-max" min="0"></label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Link:</label>
+                    <input type="url" id="p-link" placeholder="https://maps.google.com/..." required>
+                </div>
+                <div class="form-group">
+                    <label>Referencia / Nota:</label>
+                    <textarea id="p-reference" rows="2"></textarea>
+                </div>
+                <div class="form-group" id="menu-upload-group" style="display: none;">
+                    <label id="menu-upload-label">Fotos del Menú:</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="p-menu-files" class="file-upload-input" multiple accept="image/*" onchange="updateFileName(this)">
+                        <label for="p-menu-files" class="file-upload-btn">
+                            Seleccionar Fotos...
+                        </label>
+                        <div id="file-names-display" class="file-names-display">Ningún archivo seleccionado</div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn">˚.⋆ Guardar Lugar ♡</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="event-detail-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('event-detail-modal')">×</button>
+            <h3 id="det-title">Detalles del Día</h3>
+            <div id="det-content" class="place-details" style="margin-bottom: 20px;"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn" style="background-color: #d9534f;" onclick="deleteMeeting()">Eliminar Cita</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="image-viewer-modal" onclick="closeModal('image-viewer-modal')">
+        <div style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; position:relative;">
+            <button class="modal-close" style="top:20px; right:30px; color:#fff;" onclick="closeModal('image-viewer-modal')">×</button>
+            <img id="full-img" src="" alt="Vista ampliada">
+        </div>
+    </div>
+
+    <!-- Firebase SDKs versión compatible con script tags -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
